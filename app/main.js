@@ -1,6 +1,5 @@
 const net = require("net");
 const fs = require("fs");
-const dirpath = require("path");
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
@@ -22,27 +21,13 @@ const server = net.createServer((socket) => {
 
         // const body = requestLines.slice(requestLines.indexOf("") + 1).join("\r\n");
 
-        let user_agent = headers["User-Agent"];
-
-        if (user_agent) {
-            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${user_agent.length}\r\n\r\n${user_agent}`;
-            socket.write(response);
-            return;
-        }
-
-
-        // if the path starts with /files/{filename} then return the file content
-        //         First request
-        // The first request will ask for a file that exists in the files directory:
-
-        // $ echo -n 'Hello, World!' > /tmp/foo
-        // $ curl -i http://localhost:4221/files/foo
         if (path.startsWith("/files/")) {
             const directory = process.argv[3];
             const filename = path.split("/files/")[1];
-            // check if the file exists
-            if (fs.existsSync(`${directory}/${filename}`)) {
-                const filePath = `${directory}/${filename}`;
+            const filePath = `${directory}/${filename}`;
+            console.log(filePath);
+
+            if (fs.existsSync(filePath)) {
                 // read the file and return the content
                 fs.readFile(filePath, "utf8", (err, data) => {
                     const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${data.length}\r\n\r\n${data}`;
@@ -54,6 +39,15 @@ const server = net.createServer((socket) => {
                 return;
             }
         }
+
+        let user_agent = headers["User-Agent"];
+
+        if (user_agent) {
+            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${user_agent.length}\r\n\r\n${user_agent}`;
+            socket.write(response);
+            return;
+        }
+
 
         if (path === "/") {
             const response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n";
