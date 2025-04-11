@@ -30,11 +30,11 @@ const server = net.createServer((socket) => {
 
             if (fs.existsSync(filePath)) {
                 // read the file and return the content
-                fs.readFile(filePath, "utf8", (err, data) => {
-                    const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${data.length}\r\n\r\n${data}`;
-                    socket.write(response);
-                });
+                const data = fs.readFileSync(filePath).toString();
+                const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${data.length}\r\n\r\n${data}`;
+                socket.write(response);
             } else {
+                console.log("File not found");
                 const response = "HTTP/1.1 404 Not Found\r\n\r\n";
                 socket.write(response);
                 return;
