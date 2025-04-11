@@ -21,7 +21,7 @@ const server = net.createServer((socket) => {
 
         // get text from the path (/echo/{string}) also add a check if the path is valid
         if (!path.startsWith("/echo/")) {
-            const response = "HTTP/1.1 404 Not Found\r\n\r\n";
+            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${0}\r\n\r\n`;
             socket.write(response);
             return;
         }
