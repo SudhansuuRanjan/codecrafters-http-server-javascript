@@ -1,6 +1,6 @@
 const net = require("net");
 const fs = require("fs");
-const path = require("path");
+const dirpath = require("path");
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
@@ -39,7 +39,7 @@ const server = net.createServer((socket) => {
         // $ curl -i http://localhost:4221/files/foo
         if (path.startsWith("/files/")) {
             const text = path.split("/")[2] || "";
-            const filePath = path.join(__dirname, `/tmp/${text}`);
+            const filePath = dirpath.join(__dirname, `/tmp/${text}`);
             // check if the file exists
             fs.access(filePath, fs.constants.F_OK, (err) => {
                 if (err) {
