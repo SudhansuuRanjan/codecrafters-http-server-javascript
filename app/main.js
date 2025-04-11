@@ -18,11 +18,11 @@ const server = net.createServer((socket) => {
         //     return acc;
         // }, {});
         // const body = requestLines.slice(requestLines.indexOf("") + 1).join("\r\n");
-        if (path === "/") {
-            socket.write("HTTP/1.1 200 OK\r\n\r\n");
-        } else {
-            socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
-        }
+
+        // get text from the path (/echo/{string})
+        const text = path.split("/")[2];
+        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${text.length}\r\n\r\n${text}`;
+        socket.write(response);
     });
 
     socket.on("close", () => {
