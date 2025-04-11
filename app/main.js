@@ -24,8 +24,7 @@ const server = net.createServer((socket) => {
         if (path.startsWith("/files/")) {
             const directory = process.argv[3];
             const filename = path.split("/files/")[1];
-            const filePath = `${directory}/${filename}`;
-            console.log(filePath);
+            const filePath = `${directory}${filename}`;
 
             if (fs.existsSync(filePath)) {
                 // read the file and return the content
