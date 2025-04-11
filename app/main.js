@@ -19,22 +19,29 @@ const server = net.createServer((socket) => {
         }, {});
         // const body = requestLines.slice(requestLines.indexOf("") + 1).join("\r\n");
 
-        // if(path === "/") {
-        //     const response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n";
-        //     socket.write(response);
-        //     return;
-        // }
+        let user_agent = headers["User-Agent"];
 
-        // // get text from the path (/echo/{string}) also add a check if the path is valid
-        // if (!path.startsWith("/echo")) {
-        //     const response = "HTTP/1.1 404 Not Found\r\n\r\n";
-        //     socket.write(response);
-        //     return;
-        // }
+        if (user_agent) {
+            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${user_agent.length}\r\n\r\n${user_agent}`;
+            socket.write(response);
+            return;
+        }
 
-        // const text = path.split("/")[2] || "";
+        if (path === "/") {
+            const response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n";
+            socket.write(response);
+            return;
+        }
 
-        const text = headers["User-Agent"] || "";
+        // get text from the path (/echo/{string}) also add a check if the path is valid
+        if (!path.startsWith("/echo")) {
+            const response = "HTTP/1.1 404 Not Found\r\n\r\n";
+            socket.write(response);
+            return;
+        }
+
+        const text = path.split("/")[2] || "";
+
         const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${text.length}\r\n\r\n${text}`;
         socket.write(response);
     });
