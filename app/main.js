@@ -20,12 +20,15 @@ const server = net.createServer((socket) => {
         // const body = requestLines.slice(requestLines.indexOf("") + 1).join("\r\n");
 
         // get text from the path (/echo/{string}) also add a check if the path is valid
-        if (!path.startsWith("/echo/")) {
-            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${0}\r\n\r\n`;
+        if (!path.startsWith("/echo")) {
+            const response = "HTTP/1.1 404 Not Found\r\n\r\n";
             socket.write(response);
             return;
         }
-        const text = path.split("/")[2];
+        const text = path.split("/")[2] || "";
+
+        // check if the text is empty
+
         const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${text.length}\r\n\r\n${text}`;
         socket.write(response);
     });
