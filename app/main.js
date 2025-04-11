@@ -26,15 +26,12 @@ const server = net.createServer((socket) => {
             const filename = path.split("/files/")[1];
             const filePath = `${directory}${filename}`;
 
-            console.log(filePath);
-
             if (fs.existsSync(filePath)) {
                 // read the file and return the content
                 const data = fs.readFileSync(filePath).toString();
-                const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${data.length}\r\n\r\n${data}`;
+                const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: ${data.length}\r\n\r\n${data}`;
                 socket.write(response);
             } else {
-                console.log("File not found");
                 const response = "HTTP/1.1 404 Not Found\r\n\r\n";
                 socket.write(response);
                 return;
