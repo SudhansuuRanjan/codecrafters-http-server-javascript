@@ -17,6 +17,7 @@ const server = net.createServer((socket) => {
             acc[key] = value;
             return acc;
         }, {});
+
         // const body = requestLines.slice(requestLines.indexOf("") + 1).join("\r\n");
 
         let user_agent = headers["User-Agent"];
