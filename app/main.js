@@ -2,28 +2,7 @@ const net = require("net");
 const fs = require("fs");
 const zlib = require("zlib");
 
-// You can use print statements as follows for debugging, they'll be visible when running tests.
-console.log("Logs from your program will appear here!");
-
-const compressData = (data, acceptEncoding) => {
-    let compressedData = data;
-    let contentEncodingHeader = "";
-
-    if (acceptEncoding && acceptEncoding.includes("gzip")) {
-        contentEncodingHeader = "gzip";
-        compressedData = zlib.gzipSync(data);
-    } else if (acceptEncoding && acceptEncoding.includes("deflate")) {
-        contentEncodingHeader = "deflate";
-        compressedData = zlib.deflateSync(data);
-    } else if (acceptEncoding && acceptEncoding.includes("br")) {
-        contentEncodingHeader = "br";
-        compressedData = zlib.brotliCompressSync(data);
-    }
-
-    return [compressedData, contentEncodingHeader];
-}
-
-// Uncomment this to pass the first stage
+// TCP server that listens on port 4221 and handles HTTP requests
 const server = net.createServer((socket) => {
     socket.on("data", (chunk) => {
         const request = chunk.toString("utf8").trim();
@@ -116,5 +95,23 @@ const server = net.createServer((socket) => {
         socket.end();
     });
 });
+
+function compressData (data, acceptEncoding){
+    let compressedData = data;
+    let contentEncodingHeader = "";
+
+    if (acceptEncoding && acceptEncoding.includes("gzip")) {
+        contentEncodingHeader = "gzip";
+        compressedData = zlib.gzipSync(data);
+    } else if (acceptEncoding && acceptEncoding.includes("deflate")) {
+        contentEncodingHeader = "deflate";
+        compressedData = zlib.deflateSync(data);
+    } else if (acceptEncoding && acceptEncoding.includes("br")) {
+        contentEncodingHeader = "br";
+        compressedData = zlib.brotliCompressSync(data);
+    }
+
+    return [compressedData, contentEncodingHeader];
+}
 
 server.listen(4221, "localhost");
