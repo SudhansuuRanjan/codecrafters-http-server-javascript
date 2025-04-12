@@ -50,7 +50,16 @@ const server = net.createServer((socket) => {
                 // read the file and return the content
                 const data = fs.readFileSync(filePath).toString();
                 const compressedData = compressData(data, acceptEncoding);
-                const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Encoding: gzip\r\nContent-Length: ${compressedData.length}\r\n\r\n${compressedData}`;
+                // add content-encoding header if the data is compressed
+                let contentEncodingHeader = "";
+                if (acceptEncoding && acceptEncoding.includes("gzip")) {
+                    contentEncodingHeader = "gzip";
+                } else if (acceptEncoding && acceptEncoding.includes("deflate")) {
+                    contentEncodingHeader = "deflate";
+                } else if (acceptEncoding && acceptEncoding.includes("br")) {
+                    contentEncodingHeader = "br";
+                }
+                const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream${contentEncoding && `\r\nContent-Encoding: ${contentEncoding}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n${compressedData}`;
                 socket.write(response);
                 return;
 
@@ -76,7 +85,6 @@ const server = net.createServer((socket) => {
         let user_agent = headers["User-Agent"];
 
         if (user_agent) {
-            user_agent = compressData(user_agent, acceptEncoding);
             const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${user_agent.length}\r\n\r\n${user_agent}`;
             socket.write(response);
             return;
@@ -97,7 +105,7 @@ const server = net.createServer((socket) => {
         }
 
         const text = path.split("/")[2] || "";
-        text = compressData(text, acceptEncoding);
+
         const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${text.length}\r\n\r\n${text}`;
         socket.write(response);
     });
