@@ -53,6 +53,8 @@ function handleHttpRequest(request) {
     const connectionHeader = headers["Connection"];
     const shouldClose = connectionHeader && connectionHeader.toLowerCase() === "close";
 
+    console.log(shouldClose, connectionHeader);
+
     // Serve files (GET /files/{filename})
     if (path.startsWith("/files/") && method === "GET") {
         const directory = process.argv[3];
