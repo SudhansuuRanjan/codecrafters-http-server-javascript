@@ -104,9 +104,18 @@ const server = net.createServer((socket) => {
             return;
         }
 
-        const text = path.split("/")[2] || "";
-
-        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${text.length}\r\n\r\n${text}`;
+        let text = path.split("/")[2] || "";
+        text = compressData(text, acceptEncoding);
+        // check if the text is compressed and add content-encoding header if it is
+        let contentEncodingHeader = "";
+        if (acceptEncoding && acceptEncoding.includes("gzip")) {
+            contentEncodingHeader = "gzip";
+        } else if (acceptEncoding && acceptEncoding.includes("deflate")) {
+            contentEncodingHeader = "deflate";
+        } else if (acceptEncoding && acceptEncoding.includes("br")) {
+            contentEncodingHeader = "br";
+        }
+        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncoding && `\r\nContent-Encoding: ${contentEncoding}`}\r\nContent-Length: ${text.length}\r\n\r\n${text}`;
         socket.write(response);
     });
 
