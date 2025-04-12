@@ -85,7 +85,17 @@ const server = net.createServer((socket) => {
         let user_agent = headers["User-Agent"];
 
         if (user_agent) {
-            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${user_agent.length}\r\n\r\n${user_agent}`;
+            user_agent = compressData(user_agent, acceptEncoding);
+            // check if the user-agent is compressed and add content-encoding header if it is
+            let contentEncodingHeader = "";
+            if (acceptEncoding && acceptEncoding.includes("gzip")) {
+                contentEncodingHeader = "gzip";
+            } else if (acceptEncoding && acceptEncoding.includes("deflate")) {
+                contentEncodingHeader = "deflate";
+            } else if (acceptEncoding && acceptEncoding.includes("br")) {
+                contentEncodingHeader = "br";
+            }
+            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${user_agent.length}\r\n\r\n${user_agent}`;
             socket.write(response);
             return;
         }
@@ -115,7 +125,7 @@ const server = net.createServer((socket) => {
         } else if (acceptEncoding && acceptEncoding.includes("br")) {
             contentEncodingHeader = "br";
         }
-        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncoding && `\r\nContent-Encoding: ${contentEncoding}`}\r\nContent-Length: ${text.length}\r\n\r\n${text}`;
+        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${text.length}\r\n\r\n${text}`;
         socket.write(response);
     });
 
