@@ -20,7 +20,7 @@ const compressData = (data, acceptEncoding) => {
         compressedData = zlib.brotliCompressSync(data);
     }
 
-    return [compressedData.toString('hex'), contentEncodingHeader];
+    return [compressedData, contentEncodingHeader];
 }
 
 // Uncomment this to pass the first stage
@@ -50,13 +50,16 @@ const server = net.createServer((socket) => {
                 // read the file and return the content
                 const data = fs.readFileSync(filePath).toString();
                 const [compressedData, contentEncodingHeader] = compressData(data, acceptEncoding);
-                const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n${compressedData}`;
+                const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n`;
                 socket.write(response);
+                socket.write(compressedData);
+                socket.end();
                 return;
 
             } else {
                 const response = "HTTP/1.1 404 Not Found\r\n\r\n";
                 socket.write(response);
+                socket.end();
             }
             return;
         }
@@ -70,6 +73,7 @@ const server = net.createServer((socket) => {
             fs.writeFileSync(filePath, body);
             const response = "HTTP/1.1 201 Created\r\n\r\n";
             socket.write(response);
+            socket.end();
             return;
         }
 
@@ -78,8 +82,10 @@ const server = net.createServer((socket) => {
         if (user_agent) {
             const [compressedData, contentEncodingHeader] = compressData(user_agent, acceptEncoding);
             console.log("User-Agent:", user_agent, compressedData);
-            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n${compressedData}`;
+            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n`;
             socket.write(response);
+            socket.write(compressedData);
+            socket.end();
             return;
         }
 
@@ -87,6 +93,7 @@ const server = net.createServer((socket) => {
         if (path === "/") {
             const response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 0\r\n\r\n";
             socket.write(response);
+            socket.end();
             return;
         }
 
@@ -94,13 +101,16 @@ const server = net.createServer((socket) => {
         if (!path.startsWith("/echo")) {
             const response = "HTTP/1.1 404 Not Found\r\n\r\n";
             socket.write(response);
+            socket.end();
             return;
         }
 
         let text = path.split("/")[2] || "";
         const [compressedData, contentEncodingHeader] = compressData(text, acceptEncoding);
-        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n${compressedData}`;
+        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n`;
         socket.write(response);
+        socket.write(compressedData);
+        socket.end();
     });
 
     socket.on("close", () => {
