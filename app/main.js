@@ -49,10 +49,8 @@ const server = net.createServer((socket) => {
             if (fs.existsSync(filePath)) {
                 // read the file and return the content
                 const data = fs.readFileSync(filePath).toString();
-                const [compressedData, contentEncodingHeader] = compressData(data, acceptEncoding);
-                const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n`;
+                const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: ${data.length}\r\n\r\n${data}`;
                 socket.write(response);
-                socket.write(compressedData);
                 socket.end();
                 return;
 
