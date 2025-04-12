@@ -6,19 +6,25 @@ const zlib = require("zlib");
 console.log("Logs from your program will appear here!");
 
 const compressData = (data, acceptEncoding) => {
+    let compressedData = "";
+    let contentEncodingHeader = "";
+
     if (acceptEncoding && acceptEncoding.includes("gzip")) {
-        const compressedData = zlib.gzipSync(data);
-        return compressedData;
+        contentEncodingHeader = "gzip";
+    } else if (acceptEncoding && acceptEncoding.includes("deflate")) {
+        contentEncodingHeader = "deflate";
+    } else if (acceptEncoding && acceptEncoding.includes("br")) {
+        contentEncodingHeader = "br";
     }
-    if (acceptEncoding && acceptEncoding.includes("deflate")) {
-        const compressedData = zlib.deflateSync(data);
-        return compressedData;
+
+    if (acceptEncoding && acceptEncoding.includes("gzip")) {
+        compressedData = zlib.gzipSync(data);
+    } else if (acceptEncoding && acceptEncoding.includes("deflate")) {
+        compressedData = zlib.deflateSync(data);
+    } else if (acceptEncoding && acceptEncoding.includes("br")) {
+        compressedData = zlib.brotliCompressSync(data);
     }
-    if (acceptEncoding && acceptEncoding.includes("br")) {
-        const compressedData = zlib.brotliCompressSync(data);
-        return compressedData;
-    }
-    return data;
+    return [data, contentEncodingHeader];
 }
 
 // Uncomment this to pass the first stage
@@ -49,16 +55,7 @@ const server = net.createServer((socket) => {
             if (fs.existsSync(filePath)) {
                 // read the file and return the content
                 const data = fs.readFileSync(filePath).toString();
-                const compressedData = compressData(data, acceptEncoding);
-                // add content-encoding header if the data is compressed
-                let contentEncodingHeader = "";
-                if (acceptEncoding && acceptEncoding.includes("gzip")) {
-                    contentEncodingHeader = "gzip";
-                } else if (acceptEncoding && acceptEncoding.includes("deflate")) {
-                    contentEncodingHeader = "deflate";
-                } else if (acceptEncoding && acceptEncoding.includes("br")) {
-                    contentEncodingHeader = "br";
-                }
+                const [compressedData, contentEncodingHeader] = compressData(data, acceptEncoding);
                 const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n${compressedData}`;
                 socket.write(response);
                 return;
@@ -85,17 +82,8 @@ const server = net.createServer((socket) => {
         let user_agent = headers["User-Agent"];
 
         if (user_agent) {
-            user_agent = compressData(user_agent, acceptEncoding);
-            // check if the user-agent is compressed and add content-encoding header if it is
-            let contentEncodingHeader = "";
-            if (acceptEncoding && acceptEncoding.includes("gzip")) {
-                contentEncodingHeader = "gzip";
-            } else if (acceptEncoding && acceptEncoding.includes("deflate")) {
-                contentEncodingHeader = "deflate";
-            } else if (acceptEncoding && acceptEncoding.includes("br")) {
-                contentEncodingHeader = "br";
-            }
-            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${user_agent.length}\r\n\r\n${user_agent}`;
+            const [compressedData, contentEncodingHeader] = compressData(user_agent, acceptEncoding);
+            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n${compressedData}`;
             socket.write(response);
             return;
         }
@@ -115,17 +103,8 @@ const server = net.createServer((socket) => {
         }
 
         let text = path.split("/")[2] || "";
-        text = compressData(text, acceptEncoding);
-        // check if the text is compressed and add content-encoding header if it is
-        let contentEncodingHeader = "";
-        if (acceptEncoding && acceptEncoding.includes("gzip")) {
-            contentEncodingHeader = "gzip";
-        } else if (acceptEncoding && acceptEncoding.includes("deflate")) {
-            contentEncodingHeader = "deflate";
-        } else if (acceptEncoding && acceptEncoding.includes("br")) {
-            contentEncodingHeader = "br";
-        }
-        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${text.length}\r\n\r\n${text}`;
+        const[compressData, contentEncodingHeader] = compressData(text, acceptEncoding);
+        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressData.length}\r\n\r\n${compressData}`;
         socket.write(response);
     });
 
