@@ -1,8 +1,25 @@
 const net = require("net");
 const fs = require("fs");
+const zlib = require("zlib");
 
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 console.log("Logs from your program will appear here!");
+
+const compressData = (data, acceptEncoding) => {
+    if (acceptEncoding && acceptEncoding.includes("gzip")) {
+        const compressedData = zlib.gzipSync(data);
+        return compressedData;
+    }
+    if (acceptEncoding && acceptEncoding.includes("deflate")) {
+        const compressedData = zlib.deflateSync(data);
+        return compressedData;
+    }
+    if (acceptEncoding && acceptEncoding.includes("br")) {
+        const compressedData = zlib.brotliCompressSync(data);
+        return compressedData;
+    }
+    return data;
+}
 
 // Uncomment this to pass the first stage
 const server = net.createServer((socket) => {
@@ -19,6 +36,9 @@ const server = net.createServer((socket) => {
             return acc;
         }, {});
 
+        const contentEncoding = headers["Content-Encoding"];
+        const acceptEncoding = headers["Accept-Encoding"];
+
         const body = requestLines.slice(requestLines.indexOf("") + 1).join("\r\n");
 
         if (path.startsWith("/files/") && method === "GET") {
@@ -29,8 +49,11 @@ const server = net.createServer((socket) => {
             if (fs.existsSync(filePath)) {
                 // read the file and return the content
                 const data = fs.readFileSync(filePath).toString();
-                const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: ${data.length}\r\n\r\n${data}`;
+                const compressedData = compressData(data, acceptEncoding);
+                const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Encoding: gzip\r\nContent-Length: ${compressedData.length}\r\n\r\n${compressedData}`;
                 socket.write(response);
+                return;
+
             } else {
                 const response = "HTTP/1.1 404 Not Found\r\n\r\n";
                 socket.write(response);
@@ -53,6 +76,7 @@ const server = net.createServer((socket) => {
         let user_agent = headers["User-Agent"];
 
         if (user_agent) {
+            user_agent = compressData(user_agent, acceptEncoding);
             const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${user_agent.length}\r\n\r\n${user_agent}`;
             socket.write(response);
             return;
@@ -73,7 +97,7 @@ const server = net.createServer((socket) => {
         }
 
         const text = path.split("/")[2] || "";
-
+        text = compressData(text, acceptEncoding);
         const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${text.length}\r\n\r\n${text}`;
         socket.write(response);
     });
