@@ -64,7 +64,7 @@ function handleHttpRequest(request) {
         if (fs.existsSync(filePath)) {
             const data = fs.readFileSync(filePath, "utf8");
             const [compressedData, contentEncodingHeader] = compressData(data, acceptEncoding);
-            const response = buildHttpResponse(200, "application/octet-stream", compressedData, contentEncodingHeader);
+            const response = buildHttpResponse(200, "application/octet-stream", compressedData, contentEncodingHeader, shouldClose);
             return [response, shouldClose, contentEncodingHeader, compressedData];
         } else {
             return ["HTTP/1.1 404 Not Found\r\n\r\n", shouldClose, null];
@@ -89,12 +89,12 @@ function handleHttpRequest(request) {
     if (path === "/user-agent") {
         const userAgent = headers["User-Agent"] || "Unknown";
         const [compressedData, contentEncodingHeader] = compressData(userAgent, acceptEncoding);
-        const response = buildHttpResponse(200, "text/plain", compressedData, contentEncodingHeader);
+        const response = buildHttpResponse(200, "text/plain", compressedData, contentEncodingHeader, shouldClose);
         return [response, shouldClose, contentEncodingHeader, compressedData];
     }
 
     if (path === "/") {
-        const response = buildHttpResponse(200, "text/plain", "", null);
+        const response = buildHttpResponse(200, "text/plain", "", null, shouldClose);
         return [response, shouldClose, null];
     }
 
@@ -102,7 +102,7 @@ function handleHttpRequest(request) {
     if (path.startsWith("/echo/")) {
         const text = path.split("/echo/")[1] || "";
         const [compressedData, contentEncodingHeader] = compressData(text, acceptEncoding);
-        const response = buildHttpResponse(200, "text/plain", compressedData, contentEncodingHeader);
+        const response = buildHttpResponse(200, "text/plain", compressedData, contentEncodingHeader, shouldClose);
         return [response, shouldClose, contentEncodingHeader, compressedData];
     }
 
@@ -122,13 +122,14 @@ function parseHeaders(headerLines) {
 }
 
 // Helper function to build an HTTP response
-function buildHttpResponse(statusCode, contentType, body, contentEncoding) {
+function buildHttpResponse(statusCode, contentType, body, contentEncoding, shouldClose) {
     const statusMessage = statusCode === 200 ? "OK" : "Error";
     const headers = [
         `HTTP/1.1 ${statusCode} ${statusMessage}`,
         `Content-Type: ${contentType}`,
         `Content-Length: ${body.length}`,
         contentEncoding ? `Content-Encoding: ${contentEncoding}` : "",
+        shouldClose ? "Connection: close" : "",
         "\r\n"
     ].filter(Boolean).join("\r\n");
     return `${headers}${!contentEncoding ? body : ""}`;
