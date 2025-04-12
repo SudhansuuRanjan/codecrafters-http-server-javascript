@@ -59,7 +59,7 @@ const server = net.createServer((socket) => {
                 } else if (acceptEncoding && acceptEncoding.includes("br")) {
                     contentEncodingHeader = "br";
                 }
-                const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream${contentEncoding && `\r\nContent-Encoding: ${contentEncoding}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n${compressedData}`;
+                const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n${compressedData}`;
                 socket.write(response);
                 return;
 
