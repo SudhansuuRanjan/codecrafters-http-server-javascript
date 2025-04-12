@@ -117,7 +117,7 @@ function buildResponse(statusCode, contentType, body, contentEncoding) {
         contentEncoding ? `Content-Encoding: ${contentEncoding}` : "",
         "\r\n"
     ].filter(Boolean).join("\r\n");
-    return `${headers}\r\n${body}`;
+    return `${headers}${body}`;
 }
 
 // Helper function to compress data
