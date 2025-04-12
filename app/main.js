@@ -79,7 +79,7 @@ const server = net.createServer((socket) => {
 
         if (user_agent) {
             const [compressedData, contentEncodingHeader] = compressData(user_agent, acceptEncoding);
-            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n`;
+            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${user_agent.length}\r\n\r\n`;
             socket.write(response);
             socket.write(compressedData);
             socket.end();
@@ -104,7 +104,7 @@ const server = net.createServer((socket) => {
 
         let text = path.split("/")[2] || "";
         const [compressedData, contentEncodingHeader] = compressData(text, acceptEncoding);
-        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n`;
+        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${text.length}\r\n\r\n`;
         socket.write(response);
         socket.write(compressedData);
         socket.end();
