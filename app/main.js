@@ -11,19 +11,15 @@ const compressData = (data, acceptEncoding) => {
 
     if (acceptEncoding && acceptEncoding.includes("gzip")) {
         contentEncodingHeader = "gzip";
-    } else if (acceptEncoding && acceptEncoding.includes("deflate")) {
-        contentEncodingHeader = "deflate";
-    } else if (acceptEncoding && acceptEncoding.includes("br")) {
-        contentEncodingHeader = "br";
-    }
-
-    if (acceptEncoding && acceptEncoding.includes("gzip")) {
         compressedData = zlib.gzipSync(data);
     } else if (acceptEncoding && acceptEncoding.includes("deflate")) {
+        contentEncodingHeader = "deflate";
         compressedData = zlib.deflateSync(data);
     } else if (acceptEncoding && acceptEncoding.includes("br")) {
+        contentEncodingHeader = "br";
         compressedData = zlib.brotliCompressSync(data);
     }
+
     return [data, contentEncodingHeader];
 }
 
@@ -103,8 +99,8 @@ const server = net.createServer((socket) => {
         }
 
         let text = path.split("/")[2] || "";
-        const[compressData, contentEncodingHeader] = compressData(text, acceptEncoding);
-        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressData.length}\r\n\r\n${compressData}`;
+        const [compressedData, contentEncodingHeader] = compressData(text, acceptEncoding);
+        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n${compressedData}`;
         socket.write(response);
     });
 
