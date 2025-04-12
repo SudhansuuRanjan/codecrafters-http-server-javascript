@@ -11,7 +11,7 @@ const server = net.createServer((socket) => {
         const requestLines = request.split("\r\n");
         const requestLine = requestLines[0].split(" ");
         const path = requestLine[1];
-        // const method = requestLine[0];
+        const method = requestLine[0];
         // const protocol = requestLine[2];
         const headers = requestLines.slice(1).reduce((acc, line) => {
             const [key, value] = line.split(": ");
@@ -19,9 +19,9 @@ const server = net.createServer((socket) => {
             return acc;
         }, {});
 
-        // const body = requestLines.slice(requestLines.indexOf("") + 1).join("\r\n");
+        const body = requestLines.slice(requestLines.indexOf("") + 1).join("\r\n");
 
-        if (path.startsWith("/files/")) {
+        if (path.startsWith("/files/") && method === "GET") {
             const directory = process.argv[3];
             const filename = path.split("/files/")[1];
             const filePath = `${directory}${filename}`;
@@ -35,6 +35,18 @@ const server = net.createServer((socket) => {
                 const response = "HTTP/1.1 404 Not Found\r\n\r\n";
                 socket.write(response);
             }
+            return;
+        }
+
+        if (path.startsWith("/files/") && method === "POST") {
+            const directory = process.argv[3];
+            const filename = path.split("/files/")[1];
+            const filePath = `${directory}${filename}`;
+
+            // create the file and write the body to it
+            fs.writeFileSync(filePath, body);
+            const response = "HTTP/1.1 200 OK\r\n\r\n";
+            socket.write(response);
             return;
         }
 
