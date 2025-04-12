@@ -98,7 +98,7 @@ function handleRequest(request) {
 
 // Helper function to parse headers
 function parseHeaders(headerLines) {
-    return headerLines.reduce((headers, line) => {
+    return headerLines.slice(1).reduce((headers, line) => {
         const [key, value] = line.split(": ");
         if (key && value) {
             headers[key] = value;
