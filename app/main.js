@@ -20,7 +20,7 @@ const compressData = (data, acceptEncoding) => {
         compressedData = zlib.brotliCompressSync(data);
     }
 
-    return [data, contentEncodingHeader];
+    return [compressedData, contentEncodingHeader];
 }
 
 // Uncomment this to pass the first stage
@@ -38,9 +38,7 @@ const server = net.createServer((socket) => {
             return acc;
         }, {});
 
-        const contentEncoding = headers["Content-Encoding"];
         const acceptEncoding = headers["Accept-Encoding"];
-
         const body = requestLines.slice(requestLines.indexOf("") + 1).join("\r\n");
 
         if (path.startsWith("/files/") && method === "GET") {
