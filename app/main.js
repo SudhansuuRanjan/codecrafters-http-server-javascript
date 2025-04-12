@@ -45,7 +45,7 @@ const server = net.createServer((socket) => {
 
             // create the file and write the body to it
             fs.writeFileSync(filePath, body);
-            const response = "HTTP/1.1 200 OK\r\n\r\n";
+            const response = "HTTP/1.1 201 Created\r\n\r\n";
             socket.write(response);
             return;
         }
