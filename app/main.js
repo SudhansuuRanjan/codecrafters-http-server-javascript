@@ -78,7 +78,8 @@ const server = net.createServer((socket) => {
         let user_agent = headers["User-Agent"];
 
         if (user_agent) {
-            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${compressedData.length}\r\n\r\n`;
+            const [compressData, contentEncodingHeader] = compressData(user_agent, acceptEncoding);
+            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n`;
             socket.write(response);
             socket.write(compressedData);
             socket.end();
