@@ -91,6 +91,11 @@ function handleHttpRequest(request) {
         return [response, shouldClose, contentEncodingHeader, compressedData];
     }
 
+    if (path === "/") {
+        const response = buildHttpResponse(200, "text/plain", "", null);
+        return [response, shouldClose, null];
+    }
+
     // Serve echo endpoint (GET /echo/{text})
     if (path.startsWith("/echo/")) {
         const text = path.split("/echo/")[1] || "";
