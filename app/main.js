@@ -49,8 +49,10 @@ const server = net.createServer((socket) => {
             if (fs.existsSync(filePath)) {
                 // read the file and return the content
                 const data = fs.readFileSync(filePath).toString();
-                const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: ${data.length}\r\n\r\n${data}`;
+                const [compressedData, contentEncodingHeader] = compressData(data, acceptEncoding);
+                const response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${data.length}\r\n\r\n`;
                 socket.write(response);
+                socket.write(compressedData);
                 socket.end();
                 return;
 
@@ -78,8 +80,11 @@ const server = net.createServer((socket) => {
         let user_agent = headers["User-Agent"];
 
         if (user_agent) {
-            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${user_agent.length}\r\n\r\n${user_agent}`;
+            const [compressedData, contentEncodingHeader] = compressData(user_agent, acceptEncoding);
+            console.log("User-Agent:", user_agent, compressedData);
+            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${user_agent.length}\r\n\r\n`;
             socket.write(response);
+            socket.write(compressedData);
             socket.end();
             return;
         }
@@ -102,7 +107,7 @@ const server = net.createServer((socket) => {
 
         let text = path.split("/")[2] || "";
         const [compressedData, contentEncodingHeader] = compressData(text, acceptEncoding);
-        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${compressedData.length}\r\n\r\n`;
+        const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain${contentEncodingHeader && `\r\nContent-Encoding: ${contentEncodingHeader}`}\r\nContent-Length: ${text.length}\r\n\r\n`;
         socket.write(response);
         socket.write(compressedData);
         socket.end();
